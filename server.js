@@ -31,24 +31,29 @@ bot.on(["/ip"], (msg) => {
     }
   }
   //Ubuntu results['enp4s0']
-  bot.sendMessage(msg.from.id, "IP address is: " + JSON.stringify(results));
+  bot.sendMessage(msg.from.id, "IP address is: " + JSON.stringify(nets));
 });
 
 bot.on(["/transfer"], (msg) => {
   //ssh onto the raspberry pi
   //run shell script
-
+  bot.sendMessage(msg.from.id, "Started Transfer");
+  //this wont return as we need to setup some sort of Async function
+  let text = libreelec_connect([
+    './transferFiles.sh',
+  ]);
+  bot.sendMessage(msg.from.id, text);
   bot.sendMessage(msg.from.id, "Transfer Successful");
 })
 
-function libreelec_connect (){
+function libreelec_connect (allCommands){
   var host = {
     server: {
       host: "192.168.0.104",
-      userName: "root",
-      password: "dodsTVstreamer",
+      userName: process.env.USER,
+      password: process.env.PASSWORD,
     },
-    commands: ["echo $(pwd)", "ls -l"]
+    commands: allCommands
   };
 
   var SSH2Shell = require('ssh2shell'),
@@ -56,7 +61,7 @@ function libreelec_connect (){
     SSH = new SSH2Shell(host),
     //Use a callback function to process the full session text
     callback = function (sessionText) {
-      console.log(sessionText)
+      return sessionText;
     }
 
 //Start the process
